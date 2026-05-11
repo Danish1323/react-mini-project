@@ -1,0 +1,184 @@
+import { useState, useEffect } from "react";
+import { getDashboard } from "../api/api";
+import StatCard from "../components/StatCard";
+import AlertPanel from "../components/AlertPanel";
+import {
+  Package, AlertTriangle, IndianRupee, TrendingUp,
+  BarChart2, Trophy, Activity, Bell
+} from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell
+} from "recharts";
+
+const PIE_COLORS = ["#452829", "#7a4545", "#a06060", "#57595B", "#888b8d", "#c4a89a"];
+
+const ACTION_ICONS = {
+  SALE_RECORDED:   { icon: IndianRupee, bg: "#edf7f2", color: "#3d7a5a" },
+  PRODUCT_ADDED:   { icon: Package,     bg: "#edf3fc", color: "#2b5fa0" },
+  PRODUCT_DELETED: { icon: Package,     bg: "#fdf0f0", color: "#b83232" },
+  STOCK_UPDATED:   { icon: Activity,    bg: "#f5ede8", color: "#452829" },
+};
+
+function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboard()
+      .then((res) => setData(res.data))
+      .catch(() => alert("Could not reach backend. Is it running?"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="loading"><Activity size={16} /> Loading dashboard...</div>;
+  if (!data) return <div className="loading">No data available.</div>;
+
+  return (
+    <div className="page-content">
+      {/* KPI Cards */}
+      <div className="stat-grid">
+        <StatCard icon={Package}       label="Total Products"  value={data.total_products}                      color="maroon" />
+        <StatCard icon={AlertTriangle} label="Low Stock Items" value={data.low_stock_count}                     color="red"    />
+        <StatCard icon={IndianRupee}   label="Total Revenue"   value={`₹${data.total_sales.toLocaleString()}`}  color="green"  />
+        <StatCard icon={TrendingUp}    label="Total Profit"    value={`₹${data.total_profit.toLocaleString()}`} color="orange" />
+      </div>
+
+      {/* Alerts */}
+      {(data.expiring_soon.length > 0 || data.restock_due.length > 0) && (
+        <div className="card">
+          <div className="card-header">
+            <h2><Bell size={14} /> Alerts</h2>
+            <span className="card-count">
+              {data.expiring_soon.length + data.restock_due.length}
+            </span>
+          </div>
+          <div className="card-body">
+            {data.expiring_soon.map((item) => (
+              <AlertPanel
+                key={`exp-${item.id}`}
+                type="danger"
+                title={`${item.name} — Expiring Soon`}
+                detail={`Expiry: ${item.expiry_date}`}
+              />
+            ))}
+            {data.restock_due.map((item) => (
+              <AlertPanel
+                key={`rst-${item.id}`}
+                type="warning"
+                title={`${item.name} — Restock Due`}
+                detail={`Restock by: ${item.restock_date}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Charts */}
+      <div className="two-col">
+        <div className="card">
+          <div className="card-header">
+            <h2><BarChart2 size={14} /> Category Stock</h2>
+          </div>
+          <div className="card-body" style={{ padding: "12px 16px" }}>
+            {data.category_summary.length === 0 ? (
+              <div className="empty-state">
+                <BarChart2 size={32} />
+                <p>No data yet</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={210}>
+                <BarChart data={data.category_summary} margin={{ top: 4, right: 8, left: -10, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e8d1c5" vertical={false} />
+                  <XAxis dataKey="category" tick={{ fontSize: 11, fill: "#57595B" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "#57595B" }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ border: "1px solid #E8D1C5", borderRadius: 6, fontSize: 12 }}
+                    cursor={{ fill: "#f5ede8" }}
+                  />
+                  <Bar dataKey="total_qty" fill="#452829" radius={[4, 4, 0, 0]} name="Qty" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h2><Trophy size={14} /> Top Selling</h2>
+          </div>
+          <div className="card-body" style={{ padding: "12px 16px" }}>
+            {data.top_selling.length === 0 ? (
+              <div className="empty-state">
+                <Trophy size={32} />
+                <p>No sales recorded yet</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={210}>
+                <PieChart>
+                  <Pie
+                    data={data.top_selling}
+                    dataKey="total_sold"
+                    nameKey="name"
+                    cx="50%" cy="50%"
+                    outerRadius={80}
+                    innerRadius={38}
+                    paddingAngle={3}
+                    label={({ name, percent }) =>
+                      `${name.split(" ")[0]} ${(percent * 100).toFixed(0)}%`
+                    }
+                    labelLine={false}
+                  >
+                    {data.top_selling.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val) => [`${val} units`, "Sold"]}
+                    contentStyle={{ border: "1px solid #E8D1C5", borderRadius: 6, fontSize: 12 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="card">
+        <div className="card-header">
+          <h2><Activity size={14} /> Recent Activity</h2>
+        </div>
+        <div className="card-body">
+          {data.recent_transactions.length === 0 ? (
+            <div className="empty-state">
+              <Activity size={32} />
+              <p>No activity yet</p>
+            </div>
+          ) : (
+            data.recent_transactions.map((t, i) => {
+              const meta = ACTION_ICONS[t.action] || ACTION_ICONS.STOCK_UPDATED;
+              const Icon = meta.icon;
+              return (
+                <div key={i} className="activity-item">
+                  <div className="activity-icon" style={{ background: meta.bg }}>
+                    <Icon size={13} color={meta.color} />
+                  </div>
+                  <div className="activity-body">
+                    <div className="title">{t.product_name}</div>
+                    <div className="detail">{t.details}</div>
+                    <div className="time">
+                      {new Date(t.timestamp).toLocaleString("en-IN")}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Dashboard;
