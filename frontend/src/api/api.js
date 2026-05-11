@@ -1,8 +1,9 @@
 import axios from "axios";
 
-// Base URL for the FastAPI backend
+// In production (Vercel), VITE_API_URL is set to the Railway backend URL.
+// In development, it falls back to localhost.
 const API = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
 });
 
 // ── Products ──────────────────────────────────────────────────────────────────
