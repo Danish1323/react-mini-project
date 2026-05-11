@@ -37,14 +37,15 @@ function useCountUp(target, duration = 900) {
   return display;
 }
 
-// Color presets
+// Color presets — aligned to teal palette
 const COLOR_MAP = {
-  maroon: { bg: "#f5ede8", color: "#452829" },
-  green:  { bg: "#edf7f2", color: "#3d7a5a" },
-  orange: { bg: "#fef6ea", color: "#a0620a" },
+  maroon: { bg: "#eaf3f3", color: "#2F4550" },
+  green:  { bg: "#e6f5f0", color: "#1f7a5e" },
+  orange: { bg: "#fff4e0", color: "#a06000" },
   red:    { bg: "#fdf0f0", color: "#b83232" },
-  blue:   { bg: "#edf3fc", color: "#2b5fa0" },
-  slate:  { bg: "#f2f2f3", color: "#57595B" },
+  blue:   { bg: "#ddf0ef", color: "#2F4550" },
+  slate:  { bg: "#edf4f5", color: "#586F7C" },
+  teal:   { bg: "#ddf0ef", color: "#2F4550" },
 };
 
 function StatCard({ icon: Icon, label, value, color }) {

@@ -1,138 +1,408 @@
 # InvenTrack — Inventory Management System
 
-A full-stack **Inventory Management** mini project built with **React + FastAPI**.
-
-> **BTech Mini Project** — Demonstrates CRUD operations, REST APIs, React Hooks, and SQLAlchemy ORM.
+> A full-stack inventory management web application built with **React + FastAPI**, designed for small businesses to track stock, suppliers, sales, and generate reports — all in a clean, minimalist UI.
 
 ---
 
-## 📁 Project Structure
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Tech Stack](#tech-stack)
+3. [Project Structure](#project-structure)
+4. [Required Features](#required-features)
+5. [Extra Features Added](#extra-features-added)
+6. [Installation & Setup](#installation--setup)
+7. [Running the App](#running-the-app)
+8. [API Endpoints](#api-endpoints)
+9. [Database Schema](#database-schema)
+10. [Design System](#design-system)
+11. [Business Logic & Validation](#business-logic--validation)
+
+---
+
+## Project Overview
+
+InvenTrack is a full-stack inventory management system that helps small businesses:
+- Keep track of product stock levels in real time
+- Monitor supplier relationships
+- Record and analyze sales transactions
+- Generate inventory and profit reports
+- Receive intelligent alerts before stock runs out
+
+Built as a mini-project using **React (Vite)** on the frontend and **FastAPI + SQLAlchemy + SQLite** on the backend.
+
+---
+
+## Tech Stack
+
+| Layer     | Technology                          |
+|-----------|-------------------------------------|
+| Frontend  | React 18, Vite, React Router DOM    |
+| Styling   | Vanilla CSS (custom design system)  |
+| Icons     | Lucide React                        |
+| Charts    | Recharts                            |
+| QR Codes  | qrcode.react                        |
+| Backend   | FastAPI (Python)                    |
+| ORM       | SQLAlchemy                          |
+| Database  | SQLite                              |
+| PDF Gen   | ReportLab                           |
+| HTTP      | Axios                               |
+
+---
+
+## Project Structure
 
 ```
 react-mini-project/
 ├── backend/
-│   ├── main.py           # FastAPI app entry point
-│   ├── database.py       # SQLAlchemy engine + session
-│   ├── models.py         # ORM models
-│   ├── schemas.py        # Pydantic schemas
-│   ├── crud.py           # Business logic & DB queries
-│   ├── routers/
-│   │   ├── products.py
-│   │   ├── suppliers.py
-│   │   ├── sales.py
-│   │   ├── transactions.py
-│   │   ├── dashboard.py
-│   │   └── reports.py
-│   ├── seed.py           # Database seeder (run once)
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── api/api.js            # All Axios API calls
-│   │   ├── components/
-│   │   │   ├── Sidebar.jsx
-│   │   │   ├── Header.jsx
-│   │   │   ├── StatCard.jsx
-│   │   │   └── AlertPanel.jsx
-│   │   ├── pages/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Products.jsx
-│   │   │   ├── Suppliers.jsx
-│   │   │   ├── Sales.jsx
-│   │   │   ├── Transactions.jsx
-│   │   │   └── Reports.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   └── index.html
-└── README.md
+│   ├── main.py              # FastAPI app entry point, CORS, router registration
+│   ├── models.py            # SQLAlchemy ORM models (Product, Supplier, Sale, etc.)
+│   ├── schemas.py           # Pydantic request/response schemas
+│   ├── crud.py              # All database query functions (business logic)
+│   ├── database.py          # DB engine + session setup
+│   ├── seed.py              # Seeds 12 products, 5 suppliers, 15 sales, logs
+│   ├── requirements.txt     # Python dependencies
+│   └── routers/
+│       ├── products.py      # CRUD for products
+│       ├── suppliers.py     # CRUD for suppliers
+│       ├── sales.py         # Record sales, list sales history
+│       ├── transactions.py  # Audit/transaction log
+│       ├── dashboard.py     # KPI summary, alerts
+│       ├── reports.py       # Category stock, low-stock, profit, AI insights
+│       └── invoices.py      # PDF invoice generation (ReportLab)
+│
+└── frontend/
+    ├── index.html
+    ├── vite.config.js
+    ├── package.json
+    └── src/
+        ├── App.jsx              # Root, dark mode state, routing
+        ├── index.css            # Complete design system (700+ lines)
+        ├── api/
+        │   └── api.js           # Axios API client for all endpoints
+        ├── components/
+        │   ├── Sidebar.jsx      # Navigation sidebar with Lucide icons
+        │   ├── Header.jsx       # Topbar with dark/light mode toggle
+        │   ├── StatCard.jsx     # Animated KPI stat card
+        │   ├── AlertPanel.jsx   # Expiry / restock alert row
+        │   └── QRModal.jsx      # QR code modal with download
+        └── pages/
+            ├── Dashboard.jsx    # KPIs, AI insights, alerts, charts
+            ├── Products.jsx     # Product list, add, delete, QR
+            ├── Suppliers.jsx    # Supplier cards, add, delete
+            ├── Sales.jsx        # Record sales, PDF invoice download
+            ├── Transactions.jsx # Audit log table
+            └── Reports.jsx      # Charts, low-stock table, CSV export
 ```
 
 ---
 
-## ✨ Features
+## Required Features
 
-| Feature | Description |
-|---|---|
-| 📦 Product Management | Add, view, delete products with full details |
-| ⚠️ Low Stock Alerts | Highlight products at or below reorder level |
-| 🏭 Supplier Directory | Add and manage supplier contact info |
-| 💰 Sales Recording | Record sales, auto-reduce stock, calculate profit |
-| 📋 Transaction Logs | Complete audit trail of all inventory events |
-| 📊 Reports | Category stock, low stock, monthly profit with charts |
-| 🔔 Expiry Reminders | Badge products expiring within 30 days |
-| 🔄 Restock Reminders | Badge products with restock dates due soon |
-| 📈 Analytics Dashboard | KPIs, top-selling products, category charts |
-| ⬇️ CSV Export | Export any report to CSV |
+These 8 features were the core requirements of the project:
+
+### 1. Product List with Quantities
+- Full product table on the **Products** page showing: Name, SKU, Category, Quantity, Cost Price, Selling Price, Reorder Level, Supplier, and Status flags
+- Quantities shown prominently; low quantities highlighted in **red text**
+- Search by name or SKU; filter by category dropdown
+- 12 sample products seeded across 5 categories (Grocery, Electronics, Household, Medicine, Stationery)
+
+### 2. Low-Stock Highlight Alerts
+- Products at or below their `reorder_level` are flagged with a **LOW** badge (orange)
+- These rows are highlighted with a red background tint in the product table
+- The **Dashboard** shows an Alerts panel listing all low-stock and expiring products
+- The **Reports** page has a dedicated Low-Stock table with a **Deficit** column (qty − reorder level)
+
+### 3. Sales and Profit Tracking
+- The **Sales** page records every transaction with: product name, quantity sold, selling price, revenue, profit, and timestamp
+- Total revenue and profit are shown in the page subtitle (live totals)
+- Dashboard KPI cards show **Total Revenue** and **Total Profit** at a glance
+- Sales history is sorted newest-first with full financial breakdown per row
+
+### 4. Supplier Contact List
+- The **Suppliers** page displays all suppliers as cards with: company name, contact person, phone, email, address, and notes
+- Suppliers link to products (each product has an assigned supplier)
+- Add and delete suppliers via a form with validation
+
+### 5. Category-wise Stock View
+- The **Reports** page shows a **Category Stock** bar chart (via Recharts) grouping total units by category
+- A summary table lists: Category, Number of Products, Total Qty
+- Categories in the dataset: Grocery, Electronics, Household, Medicine, Stationery
+- Filter on the Products page also supports category-based filtering
+
+### 6. Product Addition and Deletion
+- "Add Product" button opens an inline form with fields: Name, SKU, Category, Quantity, Cost Price, Selling Price, Reorder Level, Supplier, Expiry Date, Restock Date
+- Client-side validation prevents empty required fields or negative quantities
+- Backend also validates all fields via Pydantic schemas
+- Delete button (with browser confirm dialog) removes a product and logs the action
+
+### 7. Transaction Logs
+- Every product addition, deletion, and sale is logged in the `transaction_logs` table
+- The **Transactions** page shows a full audit log: action type, product name, details, and timestamp
+- Action types include: `PRODUCT_ADDED`, `PRODUCT_DELETED`, `STOCK_UPDATED`, `SALE_RECORDED`
+- Logs are sorted newest-first
+
+### 8. Basic Inventory Reports
+- **Category Stock Report**: bar chart + summary table grouped by category
+- **Low-Stock Report**: table of all products below reorder level with deficit column, exportable to CSV
+- **Profit Summary**: monthly revenue vs profit chart (line chart, Recharts)
+- Export buttons on both the Category Stock and Low-Stock sections download CSV files
 
 ---
 
-## 🚀 How to Run
+## Extra Features Added
 
-### 1. Backend (FastAPI)
+Beyond the 8 required features, the following were added:
+
+### 9. Expiry / Restock Reminder System *(from project spec)*
+- Products optionally store an `expiry_date` and `restock_date`
+- Dashboard Alerts panel shows:
+  - **"Expiring Soon"** — products with expiry within 30 days (red, clock icon)
+  - **"Restock Due"** — products with restock date within 7 days (orange, triangle icon)
+- Products page shows **EXPIRING** and **RESTOCK** badges alongside **OK** and **LOW** badges
+- Fully integrated: add expiry/restock dates when creating a product
+
+### 10. PDF Invoice Generation
+- Every sale entry on the Sales page has a **PDF** button
+- Clicking it calls `GET /invoices/{sale_id}` and downloads a branded A4 PDF
+- PDF includes: InvenTrack header, invoice number, date, product + supplier details, itemized sale table, revenue/cost/profit/margin summary, and footer
+- Generated server-side using **ReportLab** — no browser print required
+
+### 11. Dark / Light Mode Toggle
+- Sun/Moon icon button in the topbar header
+- Instantly switches between light (teal/mint/off-white palette) and dark (deep teal/navy palette)
+- Preference persisted to `localStorage` — survives page refresh and browser restart
+- Dark mode styles cover all components: sidebar, cards, tables, forms, modals, badges
+
+### 12. QR Code Generator
+- Small QR icon button appears on every row in the Products table
+- Opens a modal with a 200×200 QR code rendered in the brand teal color
+- QR encodes: `{ name, sku, category, qty }` — scannable by any phone camera or barcode scanner
+- **Download PNG** button saves the QR code as a high-res image file
+- Useful for printing and attaching to physical product labels or shelves
+
+### 13. AI Smart Insights (Stockout Prediction)
+- Backend calculates sales velocity for each product: total units sold in last 30 days ÷ 30 = avg daily sales
+- Predicts how many days of current stock remain: `quantity ÷ avg_daily_sales`
+- Results shown on Dashboard below KPI cards as the **Smart Insights** panel
+- Three urgency levels:
+  - 🔴 **Critical** (≤ 3 days) — "Stock critically low — runs out in ~N day(s)!"
+  - 🟡 **Warning** (≤ 7 days) — "Will run out in ~N days at current sales rate."
+  - 🔵 **Info** (≤ 21 days) — "~N days of stock remaining."
+- Sorted most-urgent first; only shows products with recent sales history
+
+### 14. Animated Stat Counters
+- Dashboard KPI cards count up from 0 to their target value on page load
+- Handles both plain numbers (e.g. `12`) and currency-prefixed values (e.g. `₹27,258`)
+- Uses a custom React hook with `setInterval` — no external animation library
+
+### 15. Stock Validation (Buy Guard)
+- **Frontend**: Sales form shows a "Max: N" hint on the quantity field; submitting more than available stock shows an error without calling the API
+- **Backend**: `crud.py` double-validates: rejects qty ≤ 0 and qty > current stock
+- Error message from backend is specific: `"Insufficient stock. Only N unit(s) available."`
+- Prevents any negative inventory state
+
+### 16. CSV Export
+- Reports page has **Export** buttons on the Category Stock and Low-Stock sections
+- Downloads a properly formatted `.csv` file named with a timestamp
+- Works client-side — no backend call needed
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.9+ 
+- Node.js 18+
+- npm
+
+### Backend Setup
 
 ```bash
 cd backend
 
-# Install dependencies
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate        # Mac/Linux
+# venv\Scripts\activate         # Windows
+
+# Install Python dependencies
 pip install -r requirements.txt
 
 # Seed the database with sample data (run only once)
 python seed.py
-
-# Start the backend server
-uvicorn main:app --reload
 ```
 
-Backend will run at: **http://localhost:8000**  
-API docs (Swagger UI): **http://localhost:8000/docs**
-
----
-
-### 2. Frontend (React + Vite)
+### Frontend Setup
 
 ```bash
 cd frontend
 
-# Install npm packages (already done if you ran npm install)
+# Install npm packages
 npm install
+```
 
-# Start the dev server
+---
+
+## Running the App
+
+**You need 2 terminals open simultaneously.**
+
+### Terminal 1 — Backend
+
+```bash
+cd backend
+source venv/bin/activate
+uvicorn main:app --reload --reload-dir .
+```
+
+> `--reload-dir .` prevents uvicorn from watching the `venv/` folder, which would cause constant unnecessary restarts.
+
+Backend runs at: **http://localhost:8000**  
+Interactive API docs: **http://localhost:8000/docs**
+
+### Terminal 2 — Frontend
+
+```bash
+cd frontend
 npm run dev
 ```
 
-Frontend will run at: **http://localhost:5173**
+Frontend runs at: **http://localhost:5173** (or **5174** if 5173 is busy)
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
+### Products
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/products/` | List all products |
-| POST | `/products/` | Add a product |
+| POST | `/products/` | Add a new product |
 | DELETE | `/products/{id}` | Delete a product |
-| GET | `/suppliers/` | List suppliers |
-| POST | `/suppliers/` | Add supplier |
-| DELETE | `/suppliers/{id}` | Delete supplier |
+
+### Suppliers
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/suppliers/` | List all suppliers |
+| POST | `/suppliers/` | Add a new supplier |
+| DELETE | `/suppliers/{id}` | Delete a supplier |
+
+### Sales
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/sales/` | List all sales |
-| POST | `/sales/` | Record a sale |
-| GET | `/transactions/` | List all transaction logs |
-| GET | `/dashboard/` | Dashboard stats |
-| GET | `/reports/category-stock` | Category stock report |
-| GET | `/reports/low-stock` | Low stock report |
-| GET | `/reports/profit-summary` | Monthly profit summary |
+| POST | `/sales/` | Record a new sale |
+
+### Dashboard
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard/` | KPIs, low-stock alerts, expiry/restock reminders |
+
+### Reports
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/reports/category-stock` | Stock totals grouped by category |
+| GET | `/reports/low-stock` | Products below reorder level |
+| GET | `/reports/profit-summary` | Monthly revenue and profit breakdown |
+| GET | `/reports/insights` | AI stockout predictions (30-day velocity) |
+
+### Invoices
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/invoices/{sale_id}` | Download PDF invoice for a sale |
+
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/transactions/` | Full audit log |
 
 ---
 
-## 🛠️ Tech Stack
+## Database Schema
 
-**Frontend:** React, Vite, React Router, Axios, Recharts  
-**Backend:** FastAPI, SQLAlchemy, SQLite, Pydantic, Uvicorn
+### `products`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | Integer | Primary key |
+| name | String | Product name |
+| sku | String | Unique stock-keeping unit |
+| category | String | Grocery, Electronics, etc. |
+| quantity | Integer | Current stock level |
+| cost_price | Float | Purchase price per unit |
+| selling_price | Float | Sale price per unit |
+| reorder_level | Integer | Triggers low-stock alert |
+| supplier_id | FK → suppliers | Linked supplier |
+| expiry_date | Date | Optional; triggers EXPIRING badge |
+| restock_date | Date | Optional; triggers RESTOCK badge |
+
+### `suppliers`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | Integer | Primary key |
+| name | String | Company name |
+| contact_person | String | |
+| phone | String | |
+| email | String | |
+| address | String | |
+| notes | String | Optional |
+
+### `sales`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | Integer | Primary key |
+| product_id | FK → products | |
+| quantity_sold | Integer | Units sold |
+| cost_price_at_sale | Float | Snapshot of cost at time of sale |
+| selling_price_at_sale | Float | Snapshot of selling price |
+| total_sale_amount | Float | quantity × selling_price |
+| total_profit | Float | (selling − cost) × quantity |
+| sold_at | DateTime | Timestamp |
+
+### `transaction_logs`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | Integer | Primary key |
+| action | String | PRODUCT_ADDED, SALE_RECORDED, etc. |
+| product_name | String | |
+| details | String | Human-readable description |
+| timestamp | DateTime | |
 
 ---
 
-## 📝 Notes
+## Design System
 
-- SQLite database (`inventory.db`) is auto-created in the `backend/` folder on first run.
-- Run `seed.py` once to populate with 12 sample products, 4 suppliers, and 15+ sales.
-- Both servers must be running at the same time for the app to work.
+### Color Palette
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Dark Teal | `#2F4550` | Sidebar, primary buttons, headings |
+| Mid Teal | `#586F7C` | Secondary text, icons, muted labels |
+| Mint | `#B8DBD9` | Borders, highlights, sidebar active |
+| Off-White | `#F4F4F9` | Page background |
+| White | `#FFFFFF` | Card backgrounds |
+
+### Typography
+- Font: **Inter** (Google Fonts) with system-ui fallback
+- Heading sizes: 19px (page), 15px (topbar), 13.5px (card headers)
+- Body: 13–13.5px; Labels: 10.5–11px uppercase with letter-spacing
+
+### Component Patterns
+- **Cards**: white background, teal-tinted border, 10px radius, hover shadow lift
+- **Buttons**: primary (dark teal + shadow), outline (teal border), ghost (transparent)
+- **Badges**: pill-shaped, color-coded (success/warning/danger/info)
+- **Tables**: clean borders, teal hover, red-tinted low-stock rows
+- **Stat Cards**: colored left border that intensifies on hover
+
+---
+
+## Business Logic & Validation
+
+| Rule | Where enforced |
+|------|----------------|
+| Cannot sell more units than in stock | Frontend form + `crud.py` backend |
+| Quantity must be ≥ 1 for a sale | Frontend form + `crud.py` backend |
+| Product SKU must be unique | Database unique constraint |
+| Selling price must be positive | Pydantic schema validation |
+| PDF invoice only exists for valid sale IDs | 404 returned if sale not found |
+| Seed data never creates negative stock | `make_sale()` in `seed.py` caps qty at available |
+| Stockout prediction only for products with recent sales | `avg_daily > 0` guard in `get_insights()` |
