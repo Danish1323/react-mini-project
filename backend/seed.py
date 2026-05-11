@@ -1,6 +1,7 @@
 """
-Seed script — safe to run on every startup.
-Skips seeding if data already exists (idempotent).
+Seed script — populates the database with demo data.
+Safe to import as a module (used by main.py auto_seed on startup).
+Clears and re-seeds every time it runs — Railway SQLite is ephemeral anyway.
 """
 from datetime import datetime, date, timedelta
 from database import SessionLocal, engine, Base
@@ -10,11 +11,12 @@ Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-# ─── Skip if already seeded ───────────────────────────────────────────────────
-if db.query(Supplier).count() > 0:
-    print("⏭️  Database already seeded — skipping.")
-    db.close()
-    exit(0)
+# ─── Wipe existing data and re-seed cleanly ────────────────────────────────
+db.query(Sale).delete()
+db.query(TransactionLog).delete()
+db.query(Product).delete()
+db.query(Supplier).delete()
+db.commit()
 
 
 # ─── Suppliers ────────────────────────────────────────────────────────────────
