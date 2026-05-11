@@ -12,6 +12,25 @@
 
 ---
 
+## Screenshots
+
+### Dashboard — KPIs, Smart Insights & Alerts
+![Dashboard](docs/screenshot-dashboard.png)
+
+### Products — Stock Table with QR & Low-Stock Badges
+![Products](docs/screenshot-products.png)
+
+### Sales — Record Sales & Download PDF Invoices
+![Sales](docs/screenshot-sales.png)
+
+### Reports — Charts, Category Stock & CSV Export
+![Reports](docs/screenshot-reports.png)
+
+### Dark Mode
+![Dark Mode](docs/screenshot-dark.png)
+
+---
+
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
