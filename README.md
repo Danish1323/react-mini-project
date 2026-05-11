@@ -2,6 +2,14 @@
 
 > A full-stack inventory management web application built with **React + FastAPI**, designed for small businesses to track stock, suppliers, sales, and generate reports — all in a clean, minimalist UI.
 
+### 🚀 Live Demo
+
+| Service | URL |
+|---------|-----|
+| **Frontend** (Vercel) | https://frontend-mu-nine-41.vercel.app |
+| **Backend API** (Railway) | https://react-mini-project-production.up.railway.app |
+| **API Docs** (Swagger) | https://react-mini-project-production.up.railway.app/docs |
+
 ---
 
 ## Table of Contents
@@ -13,10 +21,11 @@
 5. [Extra Features Added](#extra-features-added)
 6. [Installation & Setup](#installation--setup)
 7. [Running the App](#running-the-app)
-8. [API Endpoints](#api-endpoints)
-9. [Database Schema](#database-schema)
-10. [Design System](#design-system)
-11. [Business Logic & Validation](#business-logic--validation)
+8. [Deployment](#deployment)
+9. [API Endpoints](#api-endpoints)
+10. [Database Schema](#database-schema)
+11. [Design System](#design-system)
+12. [Business Logic & Validation](#business-logic--validation)
 
 ---
 
@@ -47,6 +56,7 @@ Built as a mini-project using **React (Vite)** on the frontend and **FastAPI + S
 | Database  | SQLite                              |
 | PDF Gen   | ReportLab                           |
 | HTTP      | Axios                               |
+| Hosting   | Vercel (frontend) + Railway (backend) |
 
 ---
 
@@ -269,6 +279,48 @@ npm run dev
 ```
 
 Frontend runs at: **http://localhost:5173** (or **5174** if 5173 is busy)
+
+---
+
+## Deployment
+
+The app is deployed on two platforms:
+
+| Part | Platform | Why |
+|------|----------|-----|
+| Frontend (React/Vite) | **Vercel** | Optimized for static/SSG builds, auto-deploys from GitHub |
+| Backend (FastAPI + SQLite) | **Railway** | Persistent VM — SQLite works, Python supported natively |
+
+### How Auto-Deploy Works
+Every `git push` to the `main` branch triggers:
+- **Vercel** rebuilds and redeploys the frontend automatically
+- **Railway** rebuilds and restarts the backend automatically
+
+### Auto-Seeding on Railway
+Since Railway's filesystem is ephemeral (resets on each deploy), the backend uses a **FastAPI lifespan startup event** to auto-seed the database:
+- On every startup, if fewer than 5 products are found in the DB → wipes and re-seeds all demo data
+- If 5+ products exist → skips seeding (preserves user-added data)
+- No manual `python seed.py` step needed on Railway
+
+### Deploy Your Own Copy
+
+**Backend → Railway:**
+1. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
+2. Select your fork of this repo
+3. Set **Root Directory** → `backend`
+4. Railway auto-detects Python from `requirements.txt` and starts via `Procfile`
+5. Generate a public domain in Settings → Networking
+
+**Frontend → Vercel:**
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# From the frontend directory:
+vercel link --yes
+echo "https://your-railway-url.up.railway.app" | vercel env add VITE_API_URL production --yes
+vercel --prod --yes
+```
 
 ---
 
