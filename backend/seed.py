@@ -1,6 +1,6 @@
 """
-Seed script - run this once to populate the database with sample data.
-Usage: python seed.py
+Seed script — safe to run on every startup.
+Skips seeding if data already exists (idempotent).
 """
 from datetime import datetime, date, timedelta
 from database import SessionLocal, engine, Base
@@ -10,12 +10,12 @@ Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-# ─── Clear existing data ─────────────────────────────────────────────────────
-db.query(Sale).delete()
-db.query(TransactionLog).delete()
-db.query(Product).delete()
-db.query(Supplier).delete()
-db.commit()
+# ─── Skip if already seeded ───────────────────────────────────────────────────
+if db.query(Supplier).count() > 0:
+    print("⏭️  Database already seeded — skipping.")
+    db.close()
+    exit(0)
+
 
 # ─── Suppliers ────────────────────────────────────────────────────────────────
 suppliers = [
