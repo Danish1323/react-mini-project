@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { getDashboard } from "../api/api";
+import { getDashboard, getInsights } from "../api/api";
 import StatCard from "../components/StatCard";
 import AlertPanel from "../components/AlertPanel";
 import {
   Package, AlertTriangle, IndianRupee, TrendingUp,
-  BarChart2, Trophy, Activity, Bell
+  BarChart2, Trophy, Activity, Bell, Sparkles,
+  AlertCircle, Info
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -21,12 +22,16 @@ const ACTION_ICONS = {
 };
 
 function Dashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData]       = useState(null);
+  const [insights, setInsights] = useState([]);
+  const [loading, setLoading]  = useState(true);
 
   useEffect(() => {
-    getDashboard()
-      .then((res) => setData(res.data))
+    Promise.all([getDashboard(), getInsights()])
+      .then(([dRes, iRes]) => {
+        setData(dRes.data);
+        setInsights(iRes.data);
+      })
       .catch(() => alert("Could not reach backend. Is it running?"))
       .finally(() => setLoading(false));
   }, []);
@@ -43,6 +48,42 @@ function Dashboard() {
         <StatCard icon={IndianRupee}   label="Total Revenue"   value={`₹${data.total_sales.toLocaleString()}`}  color="green"  />
         <StatCard icon={TrendingUp}    label="Total Profit"    value={`₹${data.total_profit.toLocaleString()}`} color="orange" />
       </div>
+
+      {/* AI Smart Insights */}
+      {insights.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h2>
+              <Sparkles size={14} />
+              Smart Insights
+            </h2>
+            <span className="card-count" style={{ background: "var(--warning-bg)", color: "var(--warning)" }}>
+              {insights.length} alert{insights.length > 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="card-body">
+            {insights.map((item) => {
+              const iconColor = item.level === "critical" ? "var(--danger)" : item.level === "warning" ? "var(--warning)" : "var(--info)";
+              const iconBg    = item.level === "critical" ? "var(--danger-bg)" : item.level === "warning" ? "var(--warning-bg)" : "var(--info-bg)";
+              const Icon      = item.level === "critical" ? AlertCircle : item.level === "warning" ? AlertTriangle : Info;
+              return (
+                <div key={item.id} className={`insight-item ${item.level}`}>
+                  <div className="insight-icon" style={{ background: iconBg }}>
+                    <Icon size={14} color={iconColor} />
+                  </div>
+                  <div className="insight-body">
+                    <div className="i-name">{item.name}</div>
+                    <div className="i-msg">{item.message}</div>
+                    <div className="i-meta">
+                      Stock: {item.quantity} units &nbsp;·&nbsp; Avg sales: {item.avg_daily_sales} units/day
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Alerts */}
       {(data.expiring_soon.length > 0 || data.restock_due.length > 0) && (

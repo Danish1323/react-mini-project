@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getProducts, addProduct, deleteProduct, getSuppliers } from "../api/api";
-import { Plus, Search, Trash2, Package, CheckCircle, AlertTriangle, Calendar, RefreshCw, X } from "lucide-react";
+import { Plus, Search, Trash2, Package, CheckCircle, AlertTriangle, Calendar, RefreshCw, X, QrCode } from "lucide-react";
+import QRModal from "../components/QRModal";
 
 function Products() {
   const [products, setProducts]   = useState([]);
@@ -10,6 +11,7 @@ function Products() {
   const [category, setCategory]   = useState("All");
   const [showForm, setShowForm]   = useState(false);
   const [message, setMessage]     = useState(null);
+  const [qrProduct, setQrProduct] = useState(null);
 
   const [form, setForm] = useState({
     name: "", sku: "", category: "", quantity: "", cost_price: "",
@@ -257,13 +259,22 @@ function Products() {
                         </div>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-ghost btn-sm btn-icon"
-                          onClick={() => handleDelete(p.id, p.name)}
-                          title="Delete product"
-                        >
-                          <Trash2 size={13} color="var(--danger)" />
-                        </button>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          <button
+                            className="btn btn-ghost btn-sm btn-icon"
+                            onClick={() => setQrProduct(p)}
+                            title="View QR Code"
+                          >
+                            <QrCode size={13} color="var(--text-muted)" />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm btn-icon"
+                            onClick={() => handleDelete(p.id, p.name)}
+                            title="Delete product"
+                          >
+                            <Trash2 size={13} color="var(--danger)" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -273,6 +284,11 @@ function Products() {
           )}
         </div>
       </div>
+
+      {/* QR Modal */}
+      {qrProduct && (
+        <QRModal product={qrProduct} onClose={() => setQrProduct(null)} />
+      )}
     </div>
   );
 }

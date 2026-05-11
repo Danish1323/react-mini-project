@@ -216,3 +216,65 @@ def get_profit_summary(db: Session):
         monthly[k]["profit"] = round(monthly[k]["profit"], 2)
 
     return sorted(monthly.values(), key=lambda x: x["month"])
+
+
+# ─── AI Insights ──────────────────────────────────────────────────────────────
+
+def get_insights(db: Session):
+    """
+    For each product with recent sales, calculate average daily sales velocity
+    over the past 30 days and predict how many days of stock remain.
+    Returns sorted list (most urgent first), capped at 8 items.
+    """
+    today = date.today()
+    window_start = today - timedelta(days=30)
+
+    products = db.query(Product).all()
+    insights = []
+
+    for p in products:
+        # Total units sold in last 30 days for this product
+        recent_qty = (
+            db.query(func.sum(Sale.quantity_sold))
+            .filter(Sale.product_id == p.id, Sale.sold_at >= window_start)
+            .scalar()
+        ) or 0
+
+        avg_daily = recent_qty / 30  # average units sold per day
+
+        # Only produce insight if the product has been selling
+        if avg_daily <= 0:
+            continue
+
+        days_left = p.quantity / avg_daily if avg_daily > 0 else None
+
+        if days_left is None:
+            continue
+
+        if days_left <= 3:
+            level = "critical"
+            message = f"Stock critically low — runs out in ~{max(int(days_left), 0)} day(s)!"
+        elif days_left <= 7:
+            level = "warning"
+            message = f"Will run out in ~{int(days_left)} days at current sales rate."
+        elif days_left <= 21:
+            level = "info"
+            message = f"~{int(days_left)} days of stock remaining."
+        else:
+            continue  # well-stocked, skip
+
+        insights.append({
+            "id": p.id,
+            "name": p.name,
+            "sku": p.sku,
+            "category": p.category,
+            "quantity": p.quantity,
+            "avg_daily_sales": round(avg_daily, 2),
+            "days_until_stockout": round(days_left, 1),
+            "level": level,
+            "message": message,
+        })
+
+    # Sort by urgency (fewest days first)
+    insights.sort(key=lambda x: x["days_until_stockout"])
+    return insights[:8]

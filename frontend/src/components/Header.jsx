@@ -1,6 +1,6 @@
-import { Menu } from "lucide-react";
+import { Menu, Sun, Moon } from "lucide-react";
 
-function Header({ title, onHamburgerClick }) {
+function Header({ title, onHamburgerClick, dark, onToggleDark }) {
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "short",
     day: "numeric",
@@ -23,6 +23,17 @@ function Header({ title, onHamburgerClick }) {
 
       <div className="topbar-right">
         <span className="topbar-date">{today}</span>
+
+        {/* Dark / Light toggle */}
+        <button
+          className="theme-toggle"
+          onClick={onToggleDark}
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle theme"
+        >
+          {dark ? <Sun size={15} /> : <Moon size={15} />}
+        </button>
+
         <span className="live-dot">
           <span className="live-dot-circle" />
           Live

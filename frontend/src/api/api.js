@@ -29,3 +29,4 @@ export const getDashboard = () => API.get("/dashboard/");
 export const getCategoryStockReport = () => API.get("/reports/category-stock");
 export const getLowStockReport = () => API.get("/reports/low-stock");
 export const getProfitSummary = () => API.get("/reports/profit-summary");
+export const getInsights = () => API.get("/reports/insights");
