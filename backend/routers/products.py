@@ -24,3 +24,15 @@ def remove_product(product_id: int, db: Session = Depends(get_db)):
     if result is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": "Product deleted successfully"}
+
+@router.patch("/{product_id}/restock", response_model=ProductOut)
+def restock(product_id: int, payload: __import__('schemas').ProductRestock, db: Session = Depends(get_db)):
+    if payload.quantity_added <= 0:
+        raise HTTPException(status_code=400, detail="Quantity must be positive")
+    
+    # Needs to import restock_product from crud
+    from crud import restock_product
+    updated = restock_product(db, product_id, payload.quantity_added)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return updated

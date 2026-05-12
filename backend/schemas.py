@@ -39,6 +39,9 @@ class ProductBase(BaseModel):
 class ProductCreate(ProductBase):
     pass
 
+class ProductRestock(BaseModel):
+    quantity_added: int
+
 class ProductOut(ProductBase):
     id: int
     created_at: datetime

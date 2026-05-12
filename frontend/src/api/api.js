@@ -10,6 +10,7 @@ const API = axios.create({
 export const getProducts = () => API.get("/products/");
 export const addProduct = (data) => API.post("/products/", data);
 export const deleteProduct = (id) => API.delete(`/products/${id}`);
+export const restockProduct = (id, quantity_added) => API.patch(`/products/${id}/restock`, { quantity_added });
 
 // ── Suppliers ─────────────────────────────────────────────────────────────────
 export const getSuppliers = () => API.get("/suppliers/");

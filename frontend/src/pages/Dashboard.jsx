@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getDashboard, getInsights } from "../api/api";
+import { getDashboard, getInsights, restockProduct } from "../api/api";
 import StatCard from "../components/StatCard";
 import AlertPanel from "../components/AlertPanel";
 import {
@@ -25,6 +25,8 @@ function Dashboard() {
   const [data, setData]       = useState(null);
   const [insights, setInsights] = useState([]);
   const [loading, setLoading]  = useState(true);
+  const [restockItem, setRestockItem] = useState(null);
+  const [restockQty, setRestockQty] = useState("");
 
   useEffect(() => {
     Promise.all([getDashboard(), getInsights()])
@@ -35,6 +37,31 @@ function Dashboard() {
       .catch(() => alert("Could not reach backend. Is it running?"))
       .finally(() => setLoading(false));
   }, []);
+
+  const openRestockModal = (id, name) => {
+    setRestockItem({ id, name });
+    setRestockQty("");
+  };
+
+  const submitRestock = async () => {
+    if (!restockItem) return;
+    const qty = parseInt(restockQty, 10);
+    if (isNaN(qty) || qty <= 0) {
+      alert("Please enter a valid positive number.");
+      return;
+    }
+    
+    try {
+      await restockProduct(restockItem.id, qty);
+      // Refresh dashboard data
+      const [dRes, iRes] = await Promise.all([getDashboard(), getInsights()]);
+      setData(dRes.data);
+      setInsights(iRes.data);
+      setRestockItem(null);
+    } catch (err) {
+      alert("Failed to restock product.");
+    }
+  };
 
   if (loading) return <div className="loading"><Activity size={16} /> Loading dashboard...</div>;
   if (!data) return <div className="loading">No data available.</div>;
@@ -71,13 +98,16 @@ function Dashboard() {
                   <div className="insight-icon" style={{ background: iconBg }}>
                     <Icon size={14} color={iconColor} />
                   </div>
-                  <div className="insight-body">
+                  <div className="insight-body" style={{ flex: 1 }}>
                     <div className="i-name">{item.name}</div>
                     <div className="i-msg">{item.message}</div>
                     <div className="i-meta">
                       Stock: {item.quantity} units &nbsp;·&nbsp; Avg sales: {item.avg_daily_sales} units/day
                     </div>
                   </div>
+                  <button className="btn btn-sm btn-outline" onClick={() => openRestockModal(item.id, item.name)}>
+                    Restock
+                  </button>
                 </div>
               );
             })}
@@ -109,6 +139,7 @@ function Dashboard() {
                 type="warning"
                 title={`${item.name} — Restock Due`}
                 detail={`Restock by: ${item.restock_date}`}
+                onRestock={() => openRestockModal(item.id, item.name)}
               />
             ))}
           </div>
@@ -218,6 +249,35 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Restock Modal */}
+      {restockItem && (
+        <div className="modal-overlay" onClick={() => setRestockItem(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">Restock Product</div>
+                <div className="modal-subtitle">Add units for {restockItem.name}</div>
+              </div>
+            </div>
+            <div className="form-group" style={{ marginBottom: "24px" }}>
+              <label>Quantity to Add</label>
+              <input
+                type="number"
+                min="1"
+                value={restockQty}
+                onChange={(e) => setRestockQty(e.target.value)}
+                placeholder="e.g. 50"
+                autoFocus
+              />
+            </div>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost" onClick={() => setRestockItem(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={submitRestock}>Confirm Restock</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

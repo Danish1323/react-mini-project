@@ -43,6 +43,24 @@ def delete_product(db: Session, product_id: int):
     db.commit()
     return True
 
+def restock_product(db: Session, product_id: int, quantity_added: int):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        return None
+    
+    product.quantity += quantity_added
+    
+    # Log the action
+    log = TransactionLog(
+        action="STOCK_UPDATED",
+        product_name=product.name,
+        details=f"Restocked {quantity_added} unit(s). New stock: {product.quantity}"
+    )
+    db.add(log)
+    db.commit()
+    db.refresh(product)
+    return product
+
 
 # ─── Suppliers ────────────────────────────────────────────────────────────────
 

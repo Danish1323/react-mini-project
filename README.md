@@ -198,19 +198,22 @@ Beyond the 8 required features, the following were added:
 - Generated server-side using **ReportLab** — no browser print required
 
 ### 11. Dark / Light Mode Toggle
-- Sun/Moon icon button in the topbar header
-- Instantly switches between light (teal/mint/off-white palette) and dark (deep teal/navy palette)
-- Preference persisted to `localStorage` — survives page refresh and browser restart
-- Dark mode styles cover all components: sidebar, cards, tables, forms, modals, badges
+- Complete CSS variables setup for deep dark mode, transforming the neo-brutalist backgrounds to high-contrast, dark-slate variants.
+- State persists via `localStorage`.
 
-### 12. QR Code Generator
+### 12. Inline Restock Action
+- Directly restock products from the Dashboard warning panels and smart insights.
+- Opens a beautiful glassmorphic modal to specify the quantity.
+- Dynamically updates stock limits and re-triggers backend insights instantly.
+
+### 13. QR Code Generator
 - Small QR icon button appears on every row in the Products table
 - Opens a modal with a 200×200 QR code rendered in the brand teal color
 - QR encodes: `{ name, sku, category, qty }` — scannable by any phone camera or barcode scanner
 - **Download PNG** button saves the QR code as a high-res image file
 - Useful for printing and attaching to physical product labels or shelves
 
-### 13. AI Smart Insights (Stockout Prediction)
+### 14. AI Smart Insights (Stockout Prediction)
 - Backend calculates sales velocity for each product: total units sold in last 30 days ÷ 30 = avg daily sales
 - Predicts how many days of current stock remain: `quantity ÷ avg_daily_sales`
 - Results shown on Dashboard below KPI cards as the **Smart Insights** panel
@@ -220,18 +223,18 @@ Beyond the 8 required features, the following were added:
   - 🔵 **Info** (≤ 21 days) — "~N days of stock remaining."
 - Sorted most-urgent first; only shows products with recent sales history
 
-### 14. Animated Stat Counters
+### 15. Animated Stat Counters
 - Dashboard KPI cards count up from 0 to their target value on page load
 - Handles both plain numbers (e.g. `12`) and currency-prefixed values (e.g. `₹27,258`)
 - Uses a custom React hook with `setInterval` — no external animation library
 
-### 15. Stock Validation (Buy Guard)
+### 16. Stock Validation (Buy Guard)
 - **Frontend**: Sales form shows a "Max: N" hint on the quantity field; submitting more than available stock shows an error without calling the API
 - **Backend**: `crud.py` double-validates: rejects qty ≤ 0 and qty > current stock
 - Error message from backend is specific: `"Insufficient stock. Only N unit(s) available."`
 - Prevents any negative inventory state
 
-### 16. CSV Export
+### 17. CSV Export
 - Reports page has **Export** buttons on the Category Stock and Low-Stock sections
 - Downloads a properly formatted `.csv` file named with a timestamp
 - Works client-side — no backend call needed
@@ -351,6 +354,7 @@ vercel --prod --yes
 | GET | `/products/` | List all products |
 | POST | `/products/` | Add a new product |
 | DELETE | `/products/{id}` | Delete a product |
+| PATCH | `/products/{id}/restock`| Inline restocking |
 
 ### Suppliers
 | Method | Endpoint | Description |
@@ -441,16 +445,23 @@ vercel --prod --yes
 
 ---
 
-## Design System
+## Design System (Neo-Brutalism + Glassmorphism)
+
+The UI was overhauled to break away from standard, boring "flat" designs and adopt a highly tactile, human-centric visual language.
+
+### Core Traits
+1. **Neo-Brutalism:** Hard 2px solid dark borders, distinct blocky drop shadows (`4px 4px 0 #000`), and a raw, structural feel.
+2. **Glassmorphism:** The sidebar, topbar, and modals utilize semi-transparent backgrounds with deep background blurring (`backdrop-filter: blur(16px)`).
+3. **Typography:** Primary headers and structural UI elements use **Space Grotesk** for a bold, technical aesthetic, paired with **Inter** for legible body copy.
+4. **Textures:** A subtle radial-gradient dotted background pattern gives the page a "blueprint" or "canvas" texture.
 
 ### Color Palette
 | Token | Hex | Usage |
 |-------|-----|-------|
-| Dark Teal | `#2F4550` | Sidebar, primary buttons, headings |
-| Mid Teal | `#586F7C` | Secondary text, icons, muted labels |
-| Mint | `#B8DBD9` | Borders, highlights, sidebar active |
-| Off-White | `#F4F4F9` | Page background |
-| White | `#FFFFFF` | Card backgrounds |
+| Warm Cream | `#F4F0EC` | Primary Page Background |
+| Ink Black | `#0A0A0A` | Text, borders, and hard drop-shadows |
+| Punchy Orange | `#FF5722` | Primary brand accent and interactive buttons |
+| Glass White | `rgba(255,255,255,0.65)`| Card and modal backgrounds |
 
 ### Typography
 - Font: **Inter** (Google Fonts) with system-ui fallback

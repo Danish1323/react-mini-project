@@ -253,7 +253,7 @@ Also do these:
 - First show me the complete folder structure
 - Then generate backend code
 - Then generate frontend code
-- Then generate README
+- Then generate README¸
 - Then list how to run the project
 - If a file is long, still provide full code
 - Make sure imports are correct
