@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { getSales, recordSale, getProducts } from "../api/api";
+import { getSales, recordSale, getProducts, downloadInvoice as fetchInvoice } from "../api/api";
 import { ShoppingCart, Plus, FileDown, CheckCircle, AlertTriangle, X } from "lucide-react";
-import axios from "axios";
 
 function Sales() {
   const [sales, setSales]         = useState([]);
@@ -66,9 +65,7 @@ function Sales() {
   // Download PDF invoice for a sale
   async function downloadInvoice(saleId) {
     try {
-      const res = await axios.get(`http://localhost:8000/invoices/${saleId}`, {
-        responseType: "blob",
-      });
+      const res = await fetchInvoice(saleId);
       const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
       const a = document.createElement("a");
       a.href = url;

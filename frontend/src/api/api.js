@@ -21,6 +21,9 @@ export const deleteSupplier = (id) => API.delete(`/suppliers/${id}`);
 export const getSales = () => API.get("/sales/");
 export const recordSale = (data) => API.post("/sales/", data);
 
+// ── Invoices ──────────────────────────────────────────────────────────────────
+export const downloadInvoice = (saleId) => API.get(`/invoices/${saleId}`, { responseType: "blob" });
+
 // ── Transactions ──────────────────────────────────────────────────────────────
 export const getTransactions = () => API.get("/transactions/");
 
